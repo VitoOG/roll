@@ -176,20 +176,24 @@
     }
 
     function updateUI(resultLog, jackpotResult) {
+      // Обновляем только последний результат
       document.getElementById('mainResult').innerHTML = resultLog;
 
+      // Обновляем информацию о джекпоте
       if (jackpotResult) {
         document.getElementById('jackpotInfo').innerHTML = `💰 Джекпот: ${jackpotResult}`;
       } else {
         document.getElementById('jackpotInfo').innerHTML = "💰 Джекпот: пока не выпал";
       }
 
+      // Обновляем статистику
       document.getElementById('stats').innerHTML = `
         <p>Всего проверок: ${totalChecks}</p>
         <p>Всего выигрышей: ${totalWins}</p>
         <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
       `;
 
+      // Обновляем статистику по группам
       const groupDisplay = groupHits.map((val, i) => `Группа ${i + 1}: ${val} раз`).join('<br>');
       document.getElementById('groupStats').innerHTML = groupDisplay;
     }
