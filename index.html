@@ -2,25 +2,23 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>🎰 Элитный Слот с % и Авто</title>
+  <title>🎰 Элитный Слот (50 % шанс)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     *{box-sizing:border-box;}
-    body{margin:0;padding:20px;background:#1b1b1b;color:#e3c77c;font-family:'Segoe UI',sans-serif;text-align:center;}
-    .container{max-width:100%;padding:0 10px;}
-    h1{font-size:1.4em;margin-bottom:10px;}
+    body{margin:0;padding:20px;background:#1b1b1b;color:#e3c77c;font-family:sans-serif;text-align:center;}
+    .container{max-width:360px;margin:auto;}
+    h1{margin-bottom:10px;font-size:1.4em;}
     .controls{margin-bottom:10px;}
     .controls input{width:60px;padding:5px;margin:0 5px;border:1px solid #e3c77c;background:#111;color:#e3c77c;border-radius:4px;}
     button{padding:8px 16px;background:#e3c77c;color:#1b1b1b;border:none;border-radius:5px;cursor:pointer;}
-    .slot{display:flex;justify-content:center;margin:10px auto;overflow:hidden;border:3px solid #e3c77c;border-radius:8px;background:#111;max-width:320px;height:180px;}
+    .slot{display:flex;justify-content:center;margin:10px 0;overflow:hidden;border:3px solid #e3c77c;border-radius:8px;background:#111;height:180px;}
     .reel{width:60px;height:180px;overflow:hidden;position:relative;margin:0 2px;border-left:1px solid #333;border-right:1px solid #333;}
-    .track{position:absolute;top:0;left:0;width:100%;transition:transform 1s cubic-bezier(.25,.1,.25,1);}
+    .track{position:absolute;top:0;left:0;width:100%;transition:transform 1s ease-out;}
     .symbol{height:60px;line-height:60px;font-size:2em;}
-    .stats, .groups{max-width:320px;margin:10px auto;text-align:left;background:#2b2b2b;padding:10px;border:2px solid #e3c77c;border-radius:6px;font-size:.9em;}
+    .stats, .groups{background:#2b2b2b;padding:10px;margin:10px 0;border:2px solid #e3c77c;border-radius:6px;text-align:left;font-size:.9em;}
     .groups p{margin:4px 0;}
-    @media(max-width:600px){
-      .reel{width:50px;} .symbol{font-size:1.5em;}
-    }
+    @media(max-width:600px){.reel{width:50px;} .symbol{font-size:1.5em;}}
   </style>
 </head>
 <body>
@@ -28,7 +26,7 @@
     <h1>🎰 Элитный Слот</h1>
     <div class="controls">
       <label>Шанс успеха %:
-        <input type="number" id="chanceInput" value="25" min="0" max="100" step="0.1">
+        <input type="number" id="chanceInput" value="50" min="0" max="100" step="1">
       </label>
       <label>Авто-крутов:
         <input type="number" id="autoInput" value="1" min="1" max="100">
@@ -43,11 +41,16 @@
 
   <script>
     const symbols = ['🍒','🍋','🍇','🍉','🔔','⭐','💎','🍀','👑','7️⃣','🍎','🥝'];
+    // Шанс групп: 1/2,1/4,… 1/2^11
+    const groupChances = Array.from({length:11},(_,i)=>1/2**(i+1));
+    const total = groupChances.reduce((a,b)=>a+b,0);
+    const norm = groupChances.map(c=>c/total);
+
     let totalSpins=0, totalWins=0, rollsSinceJP=0;
     const counts={groups:Array(11).fill(0), smallJP:0, medJP:0, bigJP:0};
 
-    // Инициализация 5 барабанов
-    const slot = document.getElementById('slotMachine');
+    // Создаём барабаны
+    const slot=document.getElementById('slotMachine');
     for(let i=0;i<5;i++){
       const reel=document.createElement('div');
       reel.className='reel';
@@ -58,46 +61,43 @@
     }
 
     function spin(){
-      const chance=parseFloat(document.getElementById('chanceInput').value);
+      const chance= parseFloat(document.getElementById('chanceInput').value)/100;
       const autoCount=parseInt(document.getElementById('autoInput').value);
       totalSpins+=autoCount;
 
-      // Анимация (визуальный спин)
+      // визуальный спин
       document.querySelectorAll('.track').forEach(track=>{
         track.innerHTML='';
-        for(let j=0;j<3;j++){
+        for(let j=0;j<4;j++){
           const s=document.createElement('div');
           s.className='symbol';
           s.textContent=symbols[Math.floor(Math.random()*symbols.length)];
           track.appendChild(s);
         }
-        const first=track.children[0].cloneNode(true);
-        track.appendChild(first);
         track.style.transform='translateY(0)';
         setTimeout(()=>track.style.transform='translateY(-60px)',50);
       });
 
-      // Логика автоспинов
+      // логика
       for(let k=0;k<autoCount;k++){
-        // случайная проверка среднего символа
-        const mid=[]
-        for(let i=0;i<5;i++){
-          mid.push(symbols[Math.floor(Math.random()*symbols.length)]);
-        }
-        if(mid.every(v=>v===mid[0])){
+        if(Math.random()<chance){
           totalWins++;
-          const gi=symbols.indexOf(mid[0]);
-          if(gi>=0&&gi<11) counts.groups[gi]++;
-          rollsSinceJP++;
-          if(rollsSinceJP>=500&&Math.random()<0.05){
-            counts.bigJP++; rollsSinceJP=0;
-          } else if(rollsSinceJP>=250&&Math.random()<0.01){
-            counts.medJP++; rollsSinceJP=0;
-          } else if(rollsSinceJP>=100&&Math.random()<0.005){
-            counts.smallJP++; rollsSinceJP=0;
+          // выбираем группу по нормализованным шансам
+          let r=Math.random(), acc=0, idx=0;
+          for(let i=0;i<norm.length;i++){
+            acc+=norm[i];
+            if(r<=acc){ idx=i; break;}
           }
-        } else {
-          rollsSinceJP++;
+          counts.groups[idx]++;
+        }
+        rollsSinceJP++;
+        // джекпот
+        if(rollsSinceJP>=500 && Math.random()<0.05){
+          counts.bigJP++; rollsSinceJP=0;
+        } else if(rollsSinceJP>=250 && Math.random()<0.01){
+          counts.medJP++; rollsSinceJP=0;
+        } else if(rollsSinceJP>=100 && Math.random()<0.005){
+          counts.smallJP++; rollsSinceJP=0;
         }
       }
 
@@ -105,16 +105,15 @@
     }
 
     function updateUI(){
-      const losses = totalSpins - totalWins;
+      const losses= totalSpins - totalWins;
       document.getElementById('stats').innerHTML=
         `<p>Всего спинов: ${totalSpins}</p>`+
         `<p>Выигрышей: ${totalWins}</p>`+
         `<p>Проигрышей: ${losses}</p>`+
         `<p>Джекпот малый: ${counts.smallJP} | средний: ${counts.medJP} | большой: ${counts.bigJP}</p>`;
-
       let html='';
       counts.groups.forEach((c,i)=>{
-        html+=`<p>Группа ${i+1} (${symbols[i]}): ${c}</p>`;
+        html+=`<p>Группа ${i+1}: ${c}</p>`;
       });
       html+=`<p>Группа 12 (малый JP): ${counts.smallJP}</p>`;
       html+=`<p>Группа 13 (средний JP): ${counts.medJP}</p>`;
