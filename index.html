@@ -61,17 +61,6 @@
       font-size: 1em;
       margin-right: 10px;
     }
-    .result-log {
-      max-height: 150px;
-      overflow-y: auto;
-      margin-top: 10px;
-      padding: 10px;
-      border: 2px solid #e3c77c;
-      border-radius: 5px;
-      background: #222;
-      font-size: 1.1em;
-      text-align: left;
-    }
     /* Мобильная адаптивность */
     @media (max-width: 600px) {
       .container {
@@ -109,8 +98,6 @@
       <p>Малых джекпотов: 0 | Средних: 0 | Больших: 0</p>
     </div>
 
-    <div class="result-log" id="resultLog"></div>
-
     <div class="group-stats" id="groupStats"></div>
   </div>
 
@@ -118,11 +105,10 @@
     let totalChecks = 0;
     let totalWins = 0;
     let rollsSinceJackpot = 0;
-
     let jackpotCounts = { small: 0, medium: 0, big: 0 };
     const groupHits = Array(11).fill(0);
 
-    const groupChances = Array.from({length: 11}, (_, i) => 100 / Math.pow(2, i + 1));
+    const groupChances = Array.from({ length: 11 }, (_, i) => 100 / Math.pow(2, i + 1));
     const groupNormalized = (() => {
       const total = groupChances.reduce((a, b) => a + b, 0);
       return groupChances.map(c => c / total);
@@ -131,10 +117,12 @@
     function roll() {
       const chance = parseFloat(document.getElementById('chanceInput').value);
       const autoClicks = parseInt(document.getElementById('autoClicks').value);
+
+      totalChecks += autoClicks;
       let resultLog = '';
+      let jackpotResult = null;
 
       for (let i = 0; i < autoClicks; i++) {
-        totalChecks++;
         const roll = Math.random() * 100;
         const isSuccess = roll < chance;
 
@@ -142,17 +130,17 @@
           totalWins++;
           const groupIndex = selectGroup();
           groupHits[groupIndex]++;
-          resultLog += `✅ Успех! Группа ${groupIndex + 1}<br>`;
-          const jackpot = checkJackpot();
-          if (jackpot) {
-            resultLog += `💰 <b>${jackpot.toUpperCase()} ДЖЕКПОТ!</b><br>`;
+          resultLog = `✅ Успех! Группа ${groupIndex + 1}<br>`;
+          jackpotResult = checkJackpot();
+          if (jackpotResult) {
+            resultLog += `💰 <b>${jackpotResult.toUpperCase()} ДЖЕКПОТ!</b><br>`;
           }
         } else {
-          resultLog += `❌ Провал<br>`;
+          resultLog = `❌ Провал<br>`;
         }
       }
 
-      updateUI(resultLog);
+      updateUI(resultLog, jackpotResult);
     }
 
     function selectGroup() {
@@ -187,24 +175,23 @@
       return null;
     }
 
-    function updateUI(resultLog) {
+    function updateUI(resultLog, jackpotResult) {
       document.getElementById('mainResult').innerHTML = resultLog;
 
-      // Обновляем статистику
+      if (jackpotResult) {
+        document.getElementById('jackpotInfo').innerHTML = `💰 Джекпот: ${jackpotResult}`;
+      } else {
+        document.getElementById('jackpotInfo').innerHTML = "💰 Джекпот: пока не выпал";
+      }
+
       document.getElementById('stats').innerHTML = `
         <p>Всего проверок: ${totalChecks}</p>
         <p>Всего выигрышей: ${totalWins}</p>
         <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
       `;
 
-      // Обновляем статистику по группам
       const groupDisplay = groupHits.map((val, i) => `Группа ${i + 1}: ${val} раз`).join('<br>');
       document.getElementById('groupStats').innerHTML = groupDisplay;
-
-      // Обновляем лог результатов с ограничением до 5 последних
-      let resultLogHistory = document.getElementById('resultLog').innerHTML.split('<hr>').slice(0, 4);
-      resultLogHistory.push(resultLog);
-      document.getElementById('resultLog').innerHTML = resultLogHistory.join('<hr>');
     }
   </script>
 </body>
