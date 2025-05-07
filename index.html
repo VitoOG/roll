@@ -246,10 +246,8 @@
     }
 
     function updateUI(resultLog, jackpotResult) {
-      // Обновляем только последний результат
       document.getElementById('mainResult').innerHTML = resultLog;
 
-      // Обновляем информацию о джекпоте
       if (jackpotResult) {
         document.getElementById('jackpotInfo').innerHTML = `💰 Джекпот: ${jackpotResult.toUpperCase()}!`;
       }
