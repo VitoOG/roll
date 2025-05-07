@@ -1,281 +1,209 @@
+# Полный код HTML + JS для слота с 5x3 барабанами, 12 символами, анимацией,
+# статистикой по 11 группам + джекпот как группы 12–14. Всё адаптировано для мобильных устройств.
+
+html_code = """
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>💎 Elite Jackpot Machine</title>
+  <title>🎰 Elite Slot Machine</title>
   <style>
-    body {
-      background: #1b1b1b;
-      color: #e3c77c;
-      font-family: 'Georgia', serif;
-      text-align: center;
-      padding: 20px;
-      margin: 0;
+    * {
       box-sizing: border-box;
     }
-    .container {
-      background: #2b2b2b;
-      border: 3px solid #e3c77c;
-      border-radius: 20px;
+    body {
+      margin: 0;
       padding: 20px;
+      background: #1b1b1b;
+      color: #e3c77c;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+    }
+    .container {
       max-width: 600px;
       margin: auto;
-      width: 100%;
     }
     .slot-machine {
       display: flex;
-      justify-content: space-around;
-      margin-top: 30px;
-      position: relative;
-      overflow: hidden;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+      height: 180px;
     }
     .reel {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      height: 180px;
       width: 60px;
+      height: 180px;
       overflow: hidden;
       border: 2px solid #e3c77c;
-      border-radius: 10px;
-      position: relative;
+      background: #111;
+      border-radius: 8px;
+    }
+    .reel-track {
+      display: flex;
+      flex-direction: column;
+      transition: transform 1s ease-out;
     }
     .symbol {
-      font-size: 2em;
-      line-height: 60px;
       height: 60px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      color: white;
+      justify-content: center;
+      font-size: 28px;
     }
-    .spin-button {
+    button {
       background: #e3c77c;
       border: none;
       padding: 10px 20px;
-      font-size: 1.2em;
+      font-size: 1em;
       color: #1b1b1b;
       border-radius: 5px;
       cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.3s;
     }
-    .spin-button:hover {
-      background-color: #f39c12;
-    }
-    .display {
-      background: #111;
+    .stats, .group-stats {
+      background: #2b2b2b;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
       border: 2px solid #e3c77c;
-      padding: 10px;
-      margin-top: 20px;
-      font-size: 1.2em;
+      font-size: 0.95em;
     }
-    .result {
-      font-size: 1.2em;
-      margin-top: 20px;
+    .group-stats p {
+      margin: 4px 0;
+      font-size: 0.9em;
     }
-    input[type="number"] {
-      width: 60px;
-      padding: 5px;
-      border: 1px solid #e3c77c;
-      background: #1b1b1b;
-      color: #e3c77c;
-      font-size: 1em;
-      margin-right: 10px;
-    }
-    /* Мобильная адаптивность */
     @media (max-width: 600px) {
-      .container {
-        padding: 10px;
-      }
-      .slot-machine {
-        flex-direction: column;
-        justify-content: center;
-      }
       .reel {
-        margin: 10px 0;
+        width: 50px;
+      }
+      .symbol {
+        font-size: 24px;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>💎 Элитный Джекпот Кликер</h1>
-    <p>Шанс успеха (%): 
-      <input type="number" id="chanceInput" value="25" min="0.01" max="100" step="0.01">
-    </p>
-    <p>Автоклик: 
-      <input type="number" id="autoClicks" value="1" min="1" max="1000">
-      раз
-    </p>
-    <button class="spin-button" onclick="roll()">Запустить</button>
+    <h1>🎰 Элитный Слот</h1>
+    <button onclick="roll()">Крутить!</button>
 
-    <div class="slot-machine">
-      <div class="reel" id="reel1">
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-      </div>
-      <div class="reel" id="reel2">
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-      </div>
-      <div class="reel" id="reel3">
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-      </div>
-      <div class="reel" id="reel4">
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-      </div>
-      <div class="reel" id="reel5">
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-        <div class="symbol">🍒</div>
-        <div class="symbol">🍋</div>
-        <div class="symbol">💎</div>
-      </div>
-    </div>
+    <div class="slot-machine" id="slotMachine"></div>
 
-    <div class="result" id="mainResult">🎰 Ожидание...</div>
-    <div class="display" id="jackpotInfo">💰 Джекпот: пока не выпал</div>
-    <div class="display" id="stats">
-      <p>Всего проверок: 0</p>
-      <p>Всего выигрышей: 0</p>
-      <p>Малых джекпотов: 0 | Средних: 0 | Больших: 0</p>
-      <p id="groupStats">Группа 1: 0 | Группа 2: 0 | Группа 3: 0 | Группа 4: 0 | Группа 5: 0 | Группа 6: 0 | Группа 7: 0 | Группа 8: 0 | Группа 9: 0 | Группа 10: 0 | Группа 11: 0 | Джекпот Малый: 0 | Джекпот Средний: 0 | Джекпот Большой: 0</p>
-    </div>
+    <div class="stats" id="mainStats"></div>
+    <div class="group-stats" id="groupStats"></div>
   </div>
 
   <script>
+    const symbols = ['🍒', '🍋', '🍊', '🍉', '🍇', '🔔', '⭐', '💎', '🍓', '🍌', '🥝', '🎁'];
+    const reels = [];
+    const groupHits = Array(14).fill(0);
     let totalChecks = 0;
     let totalWins = 0;
     let rollsSinceJackpot = 0;
     let jackpotCounts = { small: 0, medium: 0, big: 0 };
-    const groupHits = Array(11).fill(0);
 
-    const groupChances = Array.from({ length: 11 }, (_, i) => 100 / Math.pow(2, i + 1));
-    const groupNormalized = (() => {
-      const total = groupChances.reduce((a, b) => a + b, 0);
-      return groupChances.map(c => c / total);
-    })();
-
-    // Символы для барабанов
-    const symbols = ['🍒', '🍋', '💎', '🍉', '🍇', '🍊', '🍓', '🍀', '🍍', '🥥', '🌟', '🍔'];
-
-    function roll() {
-      const chance = parseFloat(document.getElementById('chanceInput').value);
-      const autoClicks = parseInt(document.getElementById('autoClicks').value);
-
-      totalChecks += autoClicks;
-      let resultLog = '';
-      let jackpotResult = null;
-
-      // Анимация прокрутки барабанов
-      spinReels();
-
-      for (let i = 0; i < autoClicks; i++) {
-        const roll = Math.random() * 100;
-        const isSuccess = roll < chance;
-
-        if (isSuccess) {
-          totalWins++;
-          const groupIndex = selectGroup();
-          groupHits[groupIndex]++;
-          resultLog = `✅ Успех! Группа ${groupIndex + 1}<br>`;
-          jackpotResult = checkJackpot();
-          if (jackpotResult) {
-            resultLog += `💰 <b>${jackpotResult.toUpperCase()} ДЖЕКПОТ!</b><br>`;
-          }
-        } else {
-          resultLog = `❌ Провал<br>`;
+    function initReels() {
+      const container = document.getElementById('slotMachine');
+      container.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+        const track = document.createElement('div');
+        track.className = 'reel-track';
+        for (let j = 0; j < 6; j++) {
+          const sym = document.createElement('div');
+          sym.className = 'symbol';
+          sym.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+          track.appendChild(sym);
         }
+        reel.appendChild(track);
+        container.appendChild(reel);
+        reels.push(track);
       }
-
-      updateUI(resultLog, jackpotResult);
     }
 
-    function selectGroup() {
-      const r = Math.random();
-      let acc = 0;
-      for (let i = 0; i < groupNormalized.length; i++) {
-        acc += groupNormalized[i];
-        if (r <= acc) return i;
+    function roll() {
+      totalChecks++;
+      const centerSymbols = [];
+
+      for (let i = 0; i < reels.length; i++) {
+        const track = reels[i];
+        track.style.transition = 'none';
+        track.style.transform = 'translateY(0px)';
+        track.innerHTML = '';
+        for (let j = 0; j < 6; j++) {
+          const sym = document.createElement('div');
+          sym.className = 'symbol';
+          const val = symbols[Math.floor(Math.random() * symbols.length)];
+          if (j === 2) centerSymbols.push(val);
+          sym.innerHTML = val;
+          track.appendChild(sym);
+        }
+        setTimeout(() => {
+          track.style.transition = 'transform 0.8s ease-out';
+          track.style.transform = 'translateY(-120px)';
+        }, 50);
       }
-      return groupNormalized.length - 1;
+
+      setTimeout(() => {
+        let group = -1;
+        if (centerSymbols.every(s => s === centerSymbols[0])) {
+          totalWins++;
+          group = symbols.indexOf(centerSymbols[0]);
+          if (group !== -1) {
+            groupHits[group]++;
+          }
+          const jackpot = checkJackpot();
+          if (jackpot !== null) {
+            groupHits[11 + jackpot]++;
+          }
+        }
+        updateStats();
+      }, 1000);
     }
 
     function checkJackpot() {
       rollsSinceJackpot++;
-      let chance = 0;
-      let type = null;
-
-      if (rollsSinceJackpot >= 500) {
-        chance = 0.05; type = "большой";
-      } else if (rollsSinceJackpot >= 250) {
-        chance = 0.01; type = "средний";
-      } else if (rollsSinceJackpot >= 100) {
-        chance = 0.005; type = "малый";
-      }
-
-      if (type && Math.random() < chance) {
-        jackpotCounts[type]++;
+      if (rollsSinceJackpot >= 500 && Math.random() < 0.05) {
         rollsSinceJackpot = 0;
-        return type;
+        jackpotCounts.big++;
+        return 3; // группа 14
+      } else if (rollsSinceJackpot >= 250 && Math.random() < 0.01) {
+        rollsSinceJackpot = 0;
+        jackpotCounts.medium++;
+        return 2; // группа 13
+      } else if (rollsSinceJackpot >= 100 && Math.random() < 0.005) {
+        rollsSinceJackpot = 0;
+        jackpotCounts.small++;
+        return 1; // группа 12
       }
-
       return null;
     }
 
-    function updateUI(resultLog, jackpotResult) {
-      document.getElementById('mainResult').innerHTML = resultLog;
-
-      if (jackpotResult) {
-        document.getElementById('jackpotInfo').innerHTML = `💰 Джекпот: ${jackpotResult.toUpperCase()}!`;
-      }
-
-      // Обновляем статистику
-      document.getElementById('stats').innerHTML = `
-        <p>Всего проверок: ${totalChecks}</p>
-        <p>Всего выигрышей: ${totalWins}</p>
+    function updateStats() {
+      document.getElementById('mainStats').innerHTML = `
+        <p>Всего круток: ${totalChecks}</p>
+        <p>Выигрышей: ${totalWins}</p>
         <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
       `;
 
-      // Обновляем статистику групп
-      document.getElementById('groupStats').innerHTML = groupHits.map((count, i) => `Группа ${i + 1}: ${count}`).join(' | ') + 
-        ` | Джекпот Малый: ${jackpotCounts.small} | Джекпот Средний: ${jackpotCounts.medium} | Джекпот Большой: ${jackpotCounts.big}`;
+      let groupStatHTML = '';
+      for (let i = 0; i < 11; i++) {
+        groupStatHTML += `<p>Группа ${i + 1} (${symbols[i]}): ${groupHits[i]} раз</p>`;
+      }
+      groupStatHTML += `<p>Группа 12 (Малый Джекпот): ${groupHits[11]} раз</p>`;
+      groupStatHTML += `<p>Группа 13 (Средний Джекпот): ${groupHits[12]} раз</p>`;
+      groupStatHTML += `<p>Группа 14 (Большой Джекпот): ${groupHits[13]} раз</p>`;
+      document.getElementById('groupStats').innerHTML = groupStatHTML;
     }
 
-    function spinReels() {
-      const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3'), document.getElementById('reel4'), document.getElementById('reel5')];
-
-      reels.forEach(reel => {
-        let randomSymbols = [...symbols].sort(() => 0.5 - Math.random()).slice(0, 6); // случайные символы
-        let symbolElements = reel.querySelectorAll('.symbol');
-
-        symbolElements.forEach((symbol, index) => {
-          symbol.innerHTML = randomSymbols[index];
-        });
-      });
-    }
+    window.onload = () => {
+      initReels();
+      updateStats();
+    };
   </script>
 </body>
 </html>
+"""
+
+html_code
+
