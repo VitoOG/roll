@@ -28,6 +28,7 @@
       justify-content: space-around;
       margin-top: 30px;
       position: relative;
+      overflow: hidden;
     }
     .reel {
       display: flex;
@@ -40,11 +41,6 @@
       border: 2px solid #e3c77c;
       border-radius: 10px;
       position: relative;
-      animation: spin 3s ease-out infinite;
-    }
-    @keyframes spin {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-360px); }
     }
     .symbol {
       font-size: 2em;
@@ -263,28 +259,4 @@
       // Обновляем статистику
       document.getElementById('stats').innerHTML = `
         <p>Всего проверок: ${totalChecks}</p>
-        <p>Всего выигрышей: ${totalWins}</p>
-        <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
-      `;
-
-      // Обновляем статистику групп
-      document.getElementById('groupStats').innerHTML = groupHits.map((count, i) => `Группа ${i + 1}: ${count}`).join(' | ');
-    }
-
-    // Функция анимации барабанов
-    function spinReels() {
-      const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3'), document.getElementById('reel4'), document.getElementById('reel5')];
-
-      reels.forEach(reel => {
-        // Вращаем барабан
-        let randomSymbols = [...symbols].sort(() => 0.5 - Math.random()).slice(0, 6); // случайные символы
-        let symbolElements = reel.querySelectorAll('.symbol');
-
-        symbolElements.forEach((symbol, index) => {
-          symbol.innerHTML = randomSymbols[index];
-        });
-      });
-    }
-  </script>
-</body>
-</html>
+       
