@@ -27,11 +27,12 @@
       display: flex;
       justify-content: space-around;
       margin-top: 30px;
+      position: relative;
     }
     .reel {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       height: 180px;
       width: 60px;
@@ -39,6 +40,11 @@
       border: 2px solid #e3c77c;
       border-radius: 10px;
       position: relative;
+      animation: spin 3s ease-out infinite;
+    }
+    @keyframes spin {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-360px); }
     }
     .symbol {
       font-size: 2em;
@@ -159,6 +165,7 @@
       <p>Всего проверок: 0</p>
       <p>Всего выигрышей: 0</p>
       <p>Малых джекпотов: 0 | Средних: 0 | Больших: 0</p>
+      <p id="groupStats">Группа 1: 0 | Группа 2: 0 | Группа 3: 0</p>
     </div>
   </div>
 
@@ -259,23 +266,24 @@
         <p>Всего выигрышей: ${totalWins}</p>
         <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
       `;
+
+      // Обновляем статистику групп
+      document.getElementById('groupStats').innerHTML = groupHits.map((count, i) => `Группа ${i + 1}: ${count}`).join(' | ');
     }
 
-    // Функция для анимации прокрутки барабанов
+    // Функция анимации барабанов
     function spinReels() {
-      // Выбираем случайные символы для каждого барабана
-      for (let i = 1; i <= 5; i++) {
-        let reel = document.getElementById('reel' + i);
-        let symbolsToShow = [];
-        for (let j = 0; j < 6; j++) {
-          symbolsToShow.push(symbols[Math.floor(Math.random() * symbols.length)]);
-        }
-        // Обновляем содержимое барабана
-        let reelContent = reel.querySelectorAll('.symbol');
-        for (let j = 0; j < 6; j++) {
-          reelContent[j].innerHTML = symbolsToShow[j];
-        }
-      }
+      const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3'), document.getElementById('reel4'), document.getElementById('reel5')];
+
+      reels.forEach(reel => {
+        // Вращаем барабан
+        let randomSymbols = [...symbols].sort(() => 0.5 - Math.random()).slice(0, 6); // случайные символы
+        let symbolElements = reel.querySelectorAll('.symbol');
+
+        symbolElements.forEach((symbol, index) => {
+          symbol.innerHTML = randomSymbols[index];
+        });
+      });
     }
   </script>
 </body>
