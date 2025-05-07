@@ -161,7 +161,7 @@
       <p>Всего проверок: 0</p>
       <p>Всего выигрышей: 0</p>
       <p>Малых джекпотов: 0 | Средних: 0 | Больших: 0</p>
-      <p id="groupStats">Группа 1: 0 | Группа 2: 0 | Группа 3: 0</p>
+      <p id="groupStats">Группа 1: 0 | Группа 2: 0 | Группа 3: 0 | Группа 4: 0 | Группа 5: 0 | Группа 6: 0 | Группа 7: 0 | Группа 8: 0 | Группа 9: 0 | Группа 10: 0 | Группа 11: 0</p>
     </div>
   </div>
 
@@ -267,7 +267,6 @@
       document.getElementById('groupStats').innerHTML = groupHits.map((count, i) => `Группа ${i + 1}: ${count}`).join(' | ');
     }
 
-    // Функция анимации барабанов
     function spinReels() {
       const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3'), document.getElementById('reel4'), document.getElementById('reel5')];
 
