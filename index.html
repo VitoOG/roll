@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>💎 Elite Jackpot Machine</title>
   <style>
     body {
@@ -9,15 +10,18 @@
       color: #e3c77c;
       font-family: 'Georgia', serif;
       text-align: center;
-      padding: 40px;
+      padding: 20px;
+      margin: 0;
+      box-sizing: border-box;
     }
     .container {
       background: #2b2b2b;
       border: 3px solid #e3c77c;
       border-radius: 20px;
       padding: 20px;
-      width: 600px;
+      max-width: 600px;
       margin: auto;
+      width: 100%;
     }
     .group-stats {
       display: grid;
@@ -43,6 +47,10 @@
       border-radius: 5px;
       cursor: pointer;
       margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #f39c12;
     }
     input[type="number"] {
       width: 60px;
@@ -51,14 +59,46 @@
       background: #1b1b1b;
       color: #e3c77c;
       font-size: 1em;
+      margin-right: 10px;
+    }
+    .result-log {
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding: 10px;
+      border: 2px solid #e3c77c;
+      border-radius: 5px;
+      background: #222;
+      font-size: 1.1em;
+      text-align: left;
+    }
+    /* Мобильная адаптивность */
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+      .group-stats {
+        grid-template-columns: 1fr;
+      }
+      .display {
+        font-size: 1em;
+      }
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>💎 Элитный Джекпот Кликер</h1>
-    <p>Шанс успеха (%): <input type="number" id="chanceInput" value="25" min="0.01" max="100" step="0.01"></p>
-    <p>Автоклик: <input type="number" id="autoClicks" value="1" min="1" max="1000"> раз</p>
+    <p>Шанс успеха (%): 
+      <input type="number" id="chanceInput" value="25" min="0.01" max="100" step="0.01">
+    </p>
+    <p>Автоклик: 
+      <input type="number" id="autoClicks" value="1" min="1" max="1000">
+      раз
+    </p>
     <button onclick="roll()">Запустить</button>
 
     <div class="display" id="mainResult">🎰 Ожидание...</div>
@@ -68,6 +108,8 @@
       <p>Всего выигрышей: 0</p>
       <p>Малых джекпотов: 0 | Средних: 0 | Больших: 0</p>
     </div>
+
+    <div class="result-log" id="resultLog"></div>
 
     <div class="group-stats" id="groupStats"></div>
   </div>
@@ -148,14 +190,21 @@
     function updateUI(resultLog) {
       document.getElementById('mainResult').innerHTML = resultLog;
 
+      // Обновляем статистику
       document.getElementById('stats').innerHTML = `
         <p>Всего проверок: ${totalChecks}</p>
         <p>Всего выигрышей: ${totalWins}</p>
         <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
       `;
 
+      // Обновляем статистику по группам
       const groupDisplay = groupHits.map((val, i) => `Группа ${i + 1}: ${val} раз`).join('<br>');
       document.getElementById('groupStats').innerHTML = groupDisplay;
+
+      // Обновляем лог результатов с ограничением до 5 последних
+      let resultLogHistory = document.getElementById('resultLog').innerHTML.split('<hr>').slice(0, 4);
+      resultLogHistory.push(resultLog);
+      document.getElementById('resultLog').innerHTML = resultLogHistory.join('<hr>');
     }
   </script>
 </body>
