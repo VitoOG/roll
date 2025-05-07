@@ -23,13 +23,45 @@
       margin: auto;
       width: 100%;
     }
-    .group-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      text-align: left;
+    .slot-machine {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+    }
+    .reel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 180px;
+      width: 60px;
+      overflow: hidden;
+      border: 2px solid #e3c77c;
+      border-radius: 10px;
+      position: relative;
+    }
+    .symbol {
+      font-size: 2em;
+      line-height: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    .spin-button {
+      background: #e3c77c;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      color: #1b1b1b;
+      border-radius: 5px;
+      cursor: pointer;
       margin-top: 20px;
-      font-size: 1.1em;
+      transition: background-color 0.3s;
+    }
+    .spin-button:hover {
+      background-color: #f39c12;
     }
     .display {
       background: #111;
@@ -38,19 +70,9 @@
       margin-top: 20px;
       font-size: 1.2em;
     }
-    button {
-      background: #e3c77c;
-      border: none;
-      padding: 10px 20px;
-      font-size: 1em;
-      color: #1b1b1b;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #f39c12;
+    .result {
+      font-size: 1.2em;
+      margin-top: 20px;
     }
     input[type="number"] {
       width: 60px;
@@ -66,14 +88,12 @@
       .container {
         padding: 10px;
       }
-      .group-stats {
-        grid-template-columns: 1fr;
+      .slot-machine {
+        flex-direction: column;
+        justify-content: center;
       }
-      .display {
-        font-size: 1em;
-      }
-      button {
-        width: 100%;
+      .reel {
+        margin: 10px 0;
       }
     }
   </style>
@@ -88,17 +108,58 @@
       <input type="number" id="autoClicks" value="1" min="1" max="1000">
       раз
     </p>
-    <button onclick="roll()">Запустить</button>
+    <button class="spin-button" onclick="roll()">Запустить</button>
 
-    <div class="display" id="mainResult">🎰 Ожидание...</div>
+    <div class="slot-machine">
+      <div class="reel" id="reel1">
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+      </div>
+      <div class="reel" id="reel2">
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+      </div>
+      <div class="reel" id="reel3">
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+      </div>
+      <div class="reel" id="reel4">
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+      </div>
+      <div class="reel" id="reel5">
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+        <div class="symbol">🍒</div>
+        <div class="symbol">🍋</div>
+        <div class="symbol">💎</div>
+      </div>
+    </div>
+
+    <div class="result" id="mainResult">🎰 Ожидание...</div>
     <div class="display" id="jackpotInfo">💰 Джекпот: пока не выпал</div>
     <div class="display" id="stats">
       <p>Всего проверок: 0</p>
       <p>Всего выигрышей: 0</p>
       <p>Малых джекпотов: 0 | Средних: 0 | Больших: 0</p>
     </div>
-
-    <div class="group-stats" id="groupStats"></div>
   </div>
 
   <script>
@@ -114,6 +175,9 @@
       return groupChances.map(c => c / total);
     })();
 
+    // Символы для барабанов
+    const symbols = ['🍒', '🍋', '💎', '🍉', '🍇', '🍊', '🍓', '🍀', '🍍', '🥥', '🌟', '🍔'];
+
     function roll() {
       const chance = parseFloat(document.getElementById('chanceInput').value);
       const autoClicks = parseInt(document.getElementById('autoClicks').value);
@@ -121,6 +185,9 @@
       totalChecks += autoClicks;
       let resultLog = '';
       let jackpotResult = null;
+
+      // Анимация прокрутки барабанов
+      spinReels();
 
       for (let i = 0; i < autoClicks; i++) {
         const roll = Math.random() * 100;
@@ -192,10 +259,23 @@
         <p>Всего выигрышей: ${totalWins}</p>
         <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
       `;
+    }
 
-      // Обновляем статистику по группам
-      const groupDisplay = groupHits.map((val, i) => `Группа ${i + 1}: ${val} раз`).join('<br>');
-      document.getElementById('groupStats').innerHTML = groupDisplay;
+    // Функция для анимации прокрутки барабанов
+    function spinReels() {
+      // Выбираем случайные символы для каждого барабана
+      for (let i = 1; i <= 5; i++) {
+        let reel = document.getElementById('reel' + i);
+        let symbolsToShow = [];
+        for (let j = 0; j < 6; j++) {
+          symbolsToShow.push(symbols[Math.floor(Math.random() * symbols.length)]);
+        }
+        // Обновляем содержимое барабана
+        let reelContent = reel.querySelectorAll('.symbol');
+        for (let j = 0; j < 6; j++) {
+          reelContent[j].innerHTML = symbolsToShow[j];
+        }
+      }
     }
   </script>
 </body>
