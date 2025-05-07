@@ -1,209 +1,173 @@
-# Полный код HTML + JS для слота с 5x3 барабанами, 12 символами, анимацией,
-# статистикой по 11 группам + джекпот как группы 12–14. Всё адаптировано для мобильных устройств.
-
-html_code = """
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>🎰 Elite Slot Machine</title>
+  <title>🎰 Слот Джекпот</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    * {
-      box-sizing: border-box;
-    }
     body {
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background: #1b1b1b;
+      font-family: 'Arial', sans-serif;
       color: #e3c77c;
-      font-family: 'Segoe UI', sans-serif;
       text-align: center;
     }
+
     .container {
-      max-width: 600px;
-      margin: auto;
+      max-width: 100%;
+      padding: 20px;
     }
-    .slot-machine {
+
+    h1 {
+      font-size: 1.5em;
+    }
+
+    .slot-container {
       display: flex;
       justify-content: center;
-      gap: 10px;
-      margin: 20px 0;
-      height: 180px;
+      margin: 10px auto;
+      overflow: hidden;
+      max-width: 320px;
+      border: 3px solid #e3c77c;
+      border-radius: 10px;
+      background: #111;
     }
+
     .reel {
       width: 60px;
       height: 180px;
       overflow: hidden;
-      border: 2px solid #e3c77c;
-      background: #111;
-      border-radius: 8px;
+      margin: 0 2px;
+      position: relative;
+      border-left: 1px solid #444;
+      border-right: 1px solid #444;
     }
-    .reel-track {
-      display: flex;
-      flex-direction: column;
-      transition: transform 1s ease-out;
+
+    .reel-inner {
+      position: absolute;
+      width: 100%;
+      animation: spin 1s ease-out forwards;
     }
+
     .symbol {
       height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
+      font-size: 2em;
+      line-height: 60px;
     }
+
+    @keyframes spin {
+      0% { top: -300px; }
+      100% { top: 0; }
+    }
+
     button {
-      background: #e3c77c;
-      border: none;
       padding: 10px 20px;
-      font-size: 1em;
+      background: #e3c77c;
       color: #1b1b1b;
+      border: none;
       border-radius: 5px;
+      margin: 10px;
+      font-size: 1em;
       cursor: pointer;
     }
-    .stats, .group-stats {
-      background: #2b2b2b;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 2px solid #e3c77c;
-      font-size: 0.95em;
-    }
-    .group-stats p {
-      margin: 4px 0;
+
+    .stats {
+      margin-top: 20px;
       font-size: 0.9em;
     }
-    @media (max-width: 600px) {
-      .reel {
-        width: 50px;
-      }
-      .symbol {
-        font-size: 24px;
-      }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      text-align: left;
+      gap: 8px;
+      max-width: 320px;
+      margin: auto;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🎰 Элитный Слот</h1>
-    <button onclick="roll()">Крутить!</button>
-
-    <div class="slot-machine" id="slotMachine"></div>
-
-    <div class="stats" id="mainStats"></div>
-    <div class="group-stats" id="groupStats"></div>
+    <div class="slot-container" id="slot"></div>
+    <button onclick="spin()">Крутить!</button>
+    <div class="stats" id="stats"></div>
   </div>
 
   <script>
-    const symbols = ['🍒', '🍋', '🍊', '🍉', '🍇', '🔔', '⭐', '💎', '🍓', '🍌', '🥝', '🎁'];
-    const reels = [];
-    const groupHits = Array(14).fill(0);
-    let totalChecks = 0;
-    let totalWins = 0;
-    let rollsSinceJackpot = 0;
-    let jackpotCounts = { small: 0, medium: 0, big: 0 };
+    const symbols = ['🍒', '🍋', '🍇', '🍉', '🔔', '⭐', '💎', '🍀', '👑', '7️⃣', '🍎', '🥝'];
+    let groupHits = Array(14).fill(0);
+    let totalSpins = 0;
 
-    function initReels() {
-      const container = document.getElementById('slotMachine');
-      container.innerHTML = '';
+    function randomSymbol() {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function spin() {
+      const slot = document.getElementById('slot');
+      slot.innerHTML = '';
+
+      const results = [];
+
       for (let i = 0; i < 5; i++) {
         const reel = document.createElement('div');
         reel.className = 'reel';
-        const track = document.createElement('div');
-        track.className = 'reel-track';
-        for (let j = 0; j < 6; j++) {
-          const sym = document.createElement('div');
-          sym.className = 'symbol';
-          sym.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
-          track.appendChild(sym);
+
+        const reelInner = document.createElement('div');
+        reelInner.className = 'reel-inner';
+
+        const reelSymbols = [];
+        for (let j = 0; j < 3; j++) {
+          const sym = randomSymbol();
+          reelSymbols.push(sym);
+          const div = document.createElement('div');
+          div.className = 'symbol';
+          div.textContent = sym;
+          reelInner.appendChild(div);
         }
-        reel.appendChild(track);
-        container.appendChild(reel);
-        reels.push(track);
+
+        results.push(reelSymbols);
+        reel.appendChild(reelInner);
+        slot.appendChild(reel);
       }
+
+      evaluate(results);
     }
 
-    function roll() {
-      totalChecks++;
-      const centerSymbols = [];
+    function evaluate(result) {
+      totalSpins++;
+      const middleRow = result.map(col => col[1]);
 
-      for (let i = 0; i < reels.length; i++) {
-        const track = reels[i];
-        track.style.transition = 'none';
-        track.style.transform = 'translateY(0px)';
-        track.innerHTML = '';
-        for (let j = 0; j < 6; j++) {
-          const sym = document.createElement('div');
-          sym.className = 'symbol';
-          const val = symbols[Math.floor(Math.random() * symbols.length)];
-          if (j === 2) centerSymbols.push(val);
-          sym.innerHTML = val;
-          track.appendChild(sym);
-        }
-        setTimeout(() => {
-          track.style.transition = 'transform 0.8s ease-out';
-          track.style.transform = 'translateY(-120px)';
-        }, 50);
+      const unique = [...new Set(middleRow)];
+      let group = null;
+
+      if (unique.length === 1) {
+        group = 13 + Math.floor(Math.random() * 2); // Джекпоты: 13 или 14
+      } else {
+        group = Math.floor(Math.random() * 11);
       }
 
-      setTimeout(() => {
-        let group = -1;
-        if (centerSymbols.every(s => s === centerSymbols[0])) {
-          totalWins++;
-          group = symbols.indexOf(centerSymbols[0]);
-          if (group !== -1) {
-            groupHits[group]++;
-          }
-          const jackpot = checkJackpot();
-          if (jackpot !== null) {
-            groupHits[11 + jackpot]++;
-          }
-        }
-        updateStats();
-      }, 1000);
-    }
-
-    function checkJackpot() {
-      rollsSinceJackpot++;
-      if (rollsSinceJackpot >= 500 && Math.random() < 0.05) {
-        rollsSinceJackpot = 0;
-        jackpotCounts.big++;
-        return 3; // группа 14
-      } else if (rollsSinceJackpot >= 250 && Math.random() < 0.01) {
-        rollsSinceJackpot = 0;
-        jackpotCounts.medium++;
-        return 2; // группа 13
-      } else if (rollsSinceJackpot >= 100 && Math.random() < 0.005) {
-        rollsSinceJackpot = 0;
-        jackpotCounts.small++;
-        return 1; // группа 12
-      }
-      return null;
+      groupHits[group]++;
+      updateStats();
     }
 
     function updateStats() {
-      document.getElementById('mainStats').innerHTML = `
-        <p>Всего круток: ${totalChecks}</p>
-        <p>Выигрышей: ${totalWins}</p>
-        <p>Малых джекпотов: ${jackpotCounts.small} | Средних: ${jackpotCounts.medium} | Больших: ${jackpotCounts.big}</p>
-      `;
+      const statsDiv = document.getElementById('stats');
+      let html = `<strong>Всего спинов:</strong> ${totalSpins}<br><div class="grid">`;
 
-      let groupStatHTML = '';
-      for (let i = 0; i < 11; i++) {
-        groupStatHTML += `<p>Группа ${i + 1} (${symbols[i]}): ${groupHits[i]} раз</p>`;
+      for (let i = 0; i < 14; i++) {
+        let label = i < 11 ? `Группа ${i + 1}` : (i === 11 ? 'Джекпот: малый' : i === 12 ? 'Джекпот: средний' : 'Джекпот: большой');
+        html += `<div>${label}</div><div>${groupHits[i]} раз</div>`;
       }
-      groupStatHTML += `<p>Группа 12 (Малый Джекпот): ${groupHits[11]} раз</p>`;
-      groupStatHTML += `<p>Группа 13 (Средний Джекпот): ${groupHits[12]} раз</p>`;
-      groupStatHTML += `<p>Группа 14 (Большой Джекпот): ${groupHits[13]} раз</p>`;
-      document.getElementById('groupStats').innerHTML = groupStatHTML;
+
+      html += '</div>';
+      statsDiv.innerHTML = html;
     }
 
     window.onload = () => {
-      initReels();
-      updateStats();
+      spin(); // Первое вращение
     };
   </script>
 </body>
 </html>
-"""
-
-html_code
-
